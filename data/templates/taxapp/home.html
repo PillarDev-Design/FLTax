@@ -1,0 +1,64 @@
+{% extends 'taxapp/base.html' %}
+{% block content %}
+<div id='content_wrapper'>
+    <div id='left_side_wrapper'>
+        <div id='left_search'>
+            <!-- Place POST form requst here -->
+            <form action="/" method="POST">{% csrf_token %}
+                <p>Zip Code: <input type="text" name="zip_search"></p>
+                <p>County: <input type="text" name="county_search"></p>
+                <input type="submit" value="Submit">
+            </form>
+        </div>
+        <div id='left_content'>
+            <!-- Place errors here -->
+            {% if errors %}
+                <ul>
+                    {% for error in errors %}
+                    <li>{{error}}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <!-- Place initial page opening code here -->
+            {% if initial %}
+                <h5>Please enter a valid 5 digit Florida zip code
+                    or a full/partial county name.</h5>
+            {% endif %}
+            <!-- Place zip search success code here -->
+            {% if zsuccess %}
+                <p>You searched for: <strong>{{zip_search}}</strong></p>
+                <p>Found <strong>{{zip_query|length}}</strong> zip code result{{zip_query|pluralize}}.</p>
+                <ul>
+                    {% for zips in zip_query %}
+                        <li>Zip Code: <strong>{{zips}}</strong></li>
+                        <li>County: <strong>{{zips.county}}</strong></li>
+                        <li>Tax Rate: <strong>{{zips.county.tax_rate}}</strong></li>
+                        {% for cityresult in zips.city_set.all %}
+                            <li>City: <strong>{{cityresult.name}}</strong></li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <!-- Place county search success code here -->
+            {% if csuccess %}
+                <p>You searched for: <strong>{{county_search}}</strong></p>
+                <p>Found <strong>{{county_query|length}}</strong> county result{{county_query|pluralize}}.</p>
+                <ul>
+                    {% for counties in county_query %}
+                        <li>County: <strong>{{counties}}</strong></li>
+                        <li>Tax Rate: <strong>{{counties.tax_rate}}</strong></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+    <!-- Center Page Content -->
+    <div id='right_side_wrapper'>
+        <div id='content'>
+            Maps go here.
+            <div id='map_element' style='width: 500px; height: 500px;'></div>
+        </div>
+    </div>
+    <div class='clear'></div>
+</div>
+{% endblock content %}
