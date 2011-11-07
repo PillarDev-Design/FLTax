@@ -3,6 +3,7 @@
 
 //Declare layers
 var map, vector_layer;
+var SELECT_FROM_CLICK = true;
 
 function init(){
     //Create map
@@ -52,22 +53,25 @@ function init(){
     select_feature_control.activate();
 
     function selected_feature(event){
-        var county_name = event.feature.attributes.NAME;
-        update_left_content(county_name);
+        if(SELECT_FROM_CLICK === true){
+            var county_name = event.feature.attributes.NAME;
+            update_left_content(county_name);
 
-        xmlhttp = new XMLHttpRequest();
+            xmlhttp = new XMLHttpRequest();
 
-        xmlhttp.onreadystatechange = function(){
-            if(xmlhttp.readyState == 4 && xmlhttp.status==200) {
-                update_left_content(county_name,xmlhttp.responseText);
+            xmlhttp.onreadystatechange = function(){
+                if(xmlhttp.readyState == 4 && xmlhttp.status==200) {
+                    update_left_content(county_name,xmlhttp.responseText);
+                }
+                else if(xmlhttp.status == 500){
+                    document.getElementById('left_content').innerHTML = '<br />Error Occured';
+                }
             }
-            else if(xmlhttp.status == 500){
-                document.getElementById('left_content').innerHTML = '<br />Error Occured';
-            }
+
+            xmlhttp.open('GET','/get_county/' + county_name + '/', true);
+            xmlhttp.send();
         }
-
-        xmlhttp.open('GET','/get_county/' + county_name + '/', true);
-        xmlhttp.send();
+        SELECT_FROM_CLICK = true;
     }
 
     vector_layer.events.register('featureselected', this, selected_feature);
@@ -84,7 +88,7 @@ function init(){
     }
 }
 
-//*** Function Code ***
+//*** Function - Update Left Data Upon Clicking County Vector Layer ***
 function update_left_content(county, tax_rate){
     if(county === undefined){
         return null;
@@ -96,4 +100,16 @@ function update_left_content(county, tax_rate){
     if(tax_rate !== undefined){
         document.getElementById('left_content').innerHTML += '<br /><strong>Tax Rate:</strong>' + tax_rate;
     }
+}
+
+//*** Function - Update Right Vector Layer When Sucessful Query Results ***
+function highlight_feature(county){
+    for(i=0;i < map.layers[1].features.length;i++){
+        if(map.layers[1].features[i].attributes.NAME === county){
+            SELECT_FROM_CLICK = false;
+            map.controls[0].select(map.layers[1].features[i]);
+            return true;
+        }
+    }
+    return false;
 }
